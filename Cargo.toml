@@ -1,0 +1,9 @@
+[package]
+name = "cetkaik_interface"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cetkaik_fundamental = { path = "../cetkaik_fundamental" }
