@@ -116,6 +116,7 @@ pub trait CetkaikRepresentation {
             PieceWithSide = Self::AbsolutePiece,
             Coord = Self::AbsoluteCoord,
             Side = cetkaik_fundamental::AbsoluteSide,
+            Board = Self::AbsoluteBoard
         > + IsAbsoluteField;
     type RelativeField;
 
