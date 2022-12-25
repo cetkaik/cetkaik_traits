@@ -96,6 +96,21 @@ pub trait IsField {
     fn as_board_mut(&mut self) -> &mut Self::Board;
 }
 
+pub trait IsPieceWithSide {
+    type Side: Copy + Eq;
+    fn has_prof(self, prof: Profession) -> bool
+    where
+        Self: std::marker::Sized,
+    {
+        self.match_on_piece_and_apply(&|| false, &|_, p, _| p == prof)
+    }
+    fn match_on_piece_and_apply<U>(
+        self,
+        f_tam: &dyn Fn() -> U,
+        f_piece: &dyn Fn(Color, Profession, Self::Side) -> U,
+    ) -> U;
+}
+
 pub trait CetkaikRepresentation {
     type Perspective: Copy + Eq;
 
@@ -108,8 +123,8 @@ pub trait CetkaikRepresentation {
     type RelativeBoard: Copy
         + IsBoard<PieceWithSide = Self::RelativePiece, Coord = Self::RelativeCoord>;
 
-    type AbsolutePiece: Copy + Eq;
-    type RelativePiece: Copy + Eq;
+    type AbsolutePiece: Copy + Eq + IsPieceWithSide<Side = cetkaik_fundamental::AbsoluteSide>;
+    type RelativePiece: Copy + Eq + IsPieceWithSide<Side = Self::RelativeSide>;
 
     type AbsoluteField: Clone
         + core::fmt::Debug
@@ -125,6 +140,7 @@ pub trait CetkaikRepresentation {
     // always use `cetkaik_fundamental::AbsoluteSide`
     type RelativeSide: Copy + Eq;
     fn to_absolute_coord(coord: Self::RelativeCoord, p: Self::Perspective) -> Self::AbsoluteCoord;
+    fn to_relative_coord(coord: Self::AbsoluteCoord, p: Self::Perspective) -> Self::RelativeCoord;
     fn add_delta(
         coord: Self::RelativeCoord,
         row_delta: isize,
@@ -158,22 +174,30 @@ pub trait CetkaikRepresentation {
     fn relative_tam2() -> Self::RelativePiece;
     fn absolute_tam2() -> Self::AbsolutePiece;
     fn is_upward(s: Self::RelativeSide) -> bool;
-    #[deprecated = "Use `match_on_relative_piece_and_apply`"]
+    #[deprecated = "Use `piece.match_on_piece_and_apply(f_tam, f_piece)`"]
     fn match_on_piece_and_apply<U>(
         piece: Self::RelativePiece,
         f_tam: &dyn Fn() -> U,
         f_piece: &dyn Fn(Profession, Self::RelativeSide) -> U,
-    ) -> U;
+    ) -> U {
+        piece.match_on_piece_and_apply(f_tam, &|_c, p, s| f_piece(p, s))
+    }
+    #[deprecated = "Use `piece.match_on_piece_and_apply(f_tam, f_piece)`"]
     fn match_on_relative_piece_and_apply<U>(
         piece: Self::RelativePiece,
         f_tam: &dyn Fn() -> U,
         f_piece: &dyn Fn(Color, Profession, Self::RelativeSide) -> U,
-    ) -> U;
+    ) -> U {
+        piece.match_on_piece_and_apply(f_tam, f_piece)
+    }
+    #[deprecated = "Use `piece.match_on_piece_and_apply(f_tam, f_piece)`"]
     fn match_on_absolute_piece_and_apply<U>(
         piece: Self::AbsolutePiece,
         f_tam: &dyn Fn() -> U,
         f_piece: &dyn Fn(Color, Profession, cetkaik_fundamental::AbsoluteSide) -> U,
-    ) -> U;
+    ) -> U {
+        piece.match_on_piece_and_apply(f_tam, f_piece)
+    }
     fn empty_squares_relative(current_board: &Self::RelativeBoard) -> Vec<Self::RelativeCoord>;
     fn empty_squares_absolute(current_board: &Self::AbsoluteBoard) -> Vec<Self::AbsoluteCoord>;
     fn hop1zuo1_of(
@@ -202,5 +226,8 @@ pub trait CetkaikRepresentation {
         a: Self::AbsoluteCoord,
         b: Self::AbsoluteCoord,
     ) -> bool;
-    fn has_prof_absolute(piece: Self::AbsolutePiece, prof: Profession) -> bool;
+    #[deprecated = "Use `piece.has_prof(prof)`"]
+    fn has_prof_absolute(piece: Self::AbsolutePiece, prof: Profession) -> bool {
+        piece.has_prof(prof)
+    }
 }
