@@ -105,7 +105,8 @@ pub trait CetkaikRepresentation {
     type AbsoluteBoard: Clone
         + core::fmt::Debug
         + IsAbsoluteBoard<PieceWithSide = Self::AbsolutePiece, Coord = Self::AbsoluteCoord>;
-    type RelativeBoard: Copy;
+    type RelativeBoard: Copy
+        + IsBoard<PieceWithSide = Self::RelativePiece, Coord = Self::RelativeCoord>;
 
     type AbsolutePiece: Copy + Eq;
     type RelativePiece: Copy + Eq;
@@ -116,11 +117,12 @@ pub trait CetkaikRepresentation {
             PieceWithSide = Self::AbsolutePiece,
             Coord = Self::AbsoluteCoord,
             Side = cetkaik_fundamental::AbsoluteSide,
-            Board = Self::AbsoluteBoard
+            Board = Self::AbsoluteBoard,
         > + IsAbsoluteField;
     type RelativeField;
 
     // type AbsoluteSide: Copy + Eq + core::fmt::Debug + core::ops::Not;
+    // always use `cetkaik_fundamental::AbsoluteSide`
     type RelativeSide: Copy + Eq;
     fn to_absolute_coord(coord: Self::RelativeCoord, p: Self::Perspective) -> Self::AbsoluteCoord;
     fn add_delta(
@@ -128,27 +130,49 @@ pub trait CetkaikRepresentation {
         row_delta: isize,
         col_delta: isize,
     ) -> Option<Self::RelativeCoord>;
+    #[deprecated = "Use `board.peek(coord)`"]
     fn relative_get(
         board: Self::RelativeBoard,
         coord: Self::RelativeCoord,
-    ) -> Option<Self::RelativePiece>;
+    ) -> Option<Self::RelativePiece> {
+        board.peek(coord)
+    }
+    #[deprecated = "Use `new_board.put(coord, p)`"]
     fn relative_clone_and_set(
         board: &Self::RelativeBoard,
         coord: Self::RelativeCoord,
         p: Option<Self::RelativePiece>,
-    ) -> Self::RelativeBoard;
+    ) -> Self::RelativeBoard {
+        let mut new_board = *board;
+        new_board.put(coord, p);
+        new_board
+    }
+    #[deprecated = "Use `board.peek(coord)`"]
     fn absolute_get(
         board: &Self::AbsoluteBoard,
         coord: Self::AbsoluteCoord,
-    ) -> Option<Self::AbsolutePiece>;
+    ) -> Option<Self::AbsolutePiece> {
+        board.peek(coord)
+    }
     fn is_tam_hue_by_default(coord: Self::RelativeCoord) -> bool;
     fn relative_tam2() -> Self::RelativePiece;
     fn absolute_tam2() -> Self::AbsolutePiece;
     fn is_upward(s: Self::RelativeSide) -> bool;
+    #[deprecated = "Use `match_on_relative_piece_and_apply`"]
     fn match_on_piece_and_apply<U>(
         piece: Self::RelativePiece,
         f_tam: &dyn Fn() -> U,
         f_piece: &dyn Fn(Profession, Self::RelativeSide) -> U,
+    ) -> U;
+    fn match_on_relative_piece_and_apply<U>(
+        piece: Self::RelativePiece,
+        f_tam: &dyn Fn() -> U,
+        f_piece: &dyn Fn(Profession, Color, Self::RelativeSide) -> U,
+    ) -> U;
+    fn match_on_absolute_piece_and_apply<U>(
+        piece: Self::AbsolutePiece,
+        f_tam: &dyn Fn() -> U,
+        f_piece: &dyn Fn(Profession, Color, cetkaik_fundamental::AbsoluteSide) -> U,
     ) -> U;
     fn empty_squares_relative(current_board: &Self::RelativeBoard) -> Vec<Self::RelativeCoord>;
     fn empty_squares_absolute(current_board: &Self::AbsoluteBoard) -> Vec<Self::AbsoluteCoord>;
@@ -167,7 +191,10 @@ pub trait CetkaikRepresentation {
         f_tam_or_piece: &mut dyn FnMut(Self::RelativeCoord, Option<Profession>),
     );
     fn to_relative_field(field: Self::AbsoluteField, p: Self::Perspective) -> Self::RelativeField;
-    fn to_relative_side(side: cetkaik_fundamental::AbsoluteSide, p: Self::Perspective) -> Self::RelativeSide;
+    fn to_relative_side(
+        side: cetkaik_fundamental::AbsoluteSide,
+        p: Self::Perspective,
+    ) -> Self::RelativeSide;
     fn get_one_perspective() -> Self::Perspective;
     fn absolute_distance(a: Self::AbsoluteCoord, b: Self::AbsoluteCoord) -> i32;
     fn absolute_same_direction(
