@@ -167,12 +167,12 @@ pub trait CetkaikRepresentation {
     fn match_on_relative_piece_and_apply<U>(
         piece: Self::RelativePiece,
         f_tam: &dyn Fn() -> U,
-        f_piece: &dyn Fn(Profession, Color, Self::RelativeSide) -> U,
+        f_piece: &dyn Fn(Color, Profession, Self::RelativeSide) -> U,
     ) -> U;
     fn match_on_absolute_piece_and_apply<U>(
         piece: Self::AbsolutePiece,
         f_tam: &dyn Fn() -> U,
-        f_piece: &dyn Fn(Profession, Color, cetkaik_fundamental::AbsoluteSide) -> U,
+        f_piece: &dyn Fn(Color, Profession, cetkaik_fundamental::AbsoluteSide) -> U,
     ) -> U;
     fn empty_squares_relative(current_board: &Self::RelativeBoard) -> Vec<Self::RelativeCoord>;
     fn empty_squares_absolute(current_board: &Self::AbsoluteBoard) -> Vec<Self::AbsoluteCoord>;
