@@ -207,14 +207,20 @@ pub trait CetkaikRepresentation {
         piece.match_on_piece_and_apply(f_tam, f_piece)
     }
     #[deprecated = "Use `board.empty_squares().collect::<Vec<_>>()`"]
-    fn empty_squares_relative(current_board: &Self::RelativeBoard) -> Vec<Self::RelativeCoord>;
+    fn empty_squares_relative(board: &Self::RelativeBoard) -> Vec<Self::RelativeCoord> {
+       <Self::RelativeBoard as IsBoard>::empty_squares(board).collect::<Vec<_>>()
+    }
     #[deprecated = "Use `board.empty_squares().collect::<Vec<_>>()`"]
-    fn empty_squares_absolute(current_board: &Self::AbsoluteBoard) -> Vec<Self::AbsoluteCoord>;
+    fn empty_squares_absolute(board: &Self::AbsoluteBoard) -> Vec<Self::AbsoluteCoord> {
+        <Self::AbsoluteBoard as IsBoard>::empty_squares(board).collect::<Vec<_>>()
+    }
     #[deprecated = "Use `field.hop1zuo1_of(side).collect::<Vec<_>>()`"]
     fn hop1zuo1_of(
         side: cetkaik_fundamental::AbsoluteSide,
         field: &Self::AbsoluteField,
-    ) -> Vec<cetkaik_fundamental::ColorAndProf>;
+    ) -> Vec<cetkaik_fundamental::ColorAndProf> {
+       <Self::AbsoluteField as IsAbsoluteField>::hop1zuo1_of(field, side).collect::<Vec<_>>()
+    }
     fn as_board_absolute(field: &Self::AbsoluteField) -> &Self::AbsoluteBoard;
     fn as_board_mut_absolute(field: &mut Self::AbsoluteField) -> &mut Self::AbsoluteBoard;
     fn as_board_relative(field: &Self::RelativeField) -> &Self::RelativeBoard;
