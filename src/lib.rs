@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic, clippy::nursery)]
+
 use cetkaik_fundamental::{Color, Profession};
 
 /// A trait that signifies that you can use it as a `Board` with an absolute coordinate
@@ -39,6 +41,9 @@ pub trait IsBoard {
             },
         );
     }
+
+    type EmptySquaresIter: Iterator<Item = Self::Coord>;
+    fn empty_squares(&self) -> Self::EmptySquaresIter;
 }
 
 /// A trait that signifies that you can use it as a `Field` in absolute coordinates
@@ -46,6 +51,9 @@ pub trait IsBoard {
 pub trait IsAbsoluteField: IsField {
     /// The initial arrangement of the official (yhuap) rule
     fn yhuap_initial() -> Self;
+
+    type Hop1Zuo1Iter: Iterator<Item = cetkaik_fundamental::ColorAndProf>;
+    fn hop1zuo1_of(&self, side: cetkaik_fundamental::AbsoluteSide) -> Self::Hop1Zuo1Iter;
 }
 
 /// A trait that signifies that you can use it as a `Field`
@@ -198,8 +206,11 @@ pub trait CetkaikRepresentation {
     ) -> U {
         piece.match_on_piece_and_apply(f_tam, f_piece)
     }
+    #[deprecated = "Use `board.empty_squares().collect::<Vec<_>>()`"]
     fn empty_squares_relative(current_board: &Self::RelativeBoard) -> Vec<Self::RelativeCoord>;
+    #[deprecated = "Use `board.empty_squares().collect::<Vec<_>>()`"]
     fn empty_squares_absolute(current_board: &Self::AbsoluteBoard) -> Vec<Self::AbsoluteCoord>;
+    #[deprecated = "Use `field.hop1zuo1_of(side).collect::<Vec<_>>()`"]
     fn hop1zuo1_of(
         side: cetkaik_fundamental::AbsoluteSide,
         field: &Self::AbsoluteField,
